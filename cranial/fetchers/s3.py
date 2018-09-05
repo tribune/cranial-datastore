@@ -227,3 +227,67 @@ class InMemoryConnector(connector.Connector):
         except Exception as e:
             log.error("{}\tbucket={}\tkey={}".format(e, self.bucket, key))
             return False
+
+
+def from_s3(s3_prefix: str, local_path: str = 'tmp', silent: bool = False, recursive: bool = False) -> int:
+    """
+    Use `aws s3 cp` command
+    Parameters
+    ----------
+    s3_prefix
+        The full filepath of the S3 file (or directory)
+    local_path
+        The directory path (or file path) you want this saved to
+    recursive
+        if True, local path must be a directory and s3_prefix should be not a individual key
+    silent
+        if True, does not print progress of "aws s3 cp..." command
+    Returns
+    -------
+        status code of subprocess
+    """
+    try:
+        os.makedirs(local_path, exist_ok=True)
+    except FileExistsError:
+        log.debug('{} is an existing file.'.format(local_path))
+
+    comm = "aws s3 cp {source} {target}".format(source=s3_prefix, target=local_path)
+    if silent:
+        comm += ' --only-show-errors'
+        log.info("Downloading {}".format(s3_prefix))
+    if recursive: comm += ' --recursive'
+
+    res = subprocess.run(comm, shell=True, check=True)
+
+    return res.returncode
+
+
+def to_s3(s3_prefix: str, local_path: str = 'tmp', silent: bool = False, recursive: bool = False):
+    """
+    Use `aws s3 cp` command
+    Parameters
+    ----------
+    s3_prefix
+        The full filepath of the S3 file (or directory)
+    local_path
+        The directory path (or file path) you want this saved to
+    recursive
+        if True, local path must be a directory and s3_prefix should be not a individual key
+    silent
+        if True, does not print progress of "aws s3 cp..." command
+    Returns
+    -------
+        status code of subprocess
+    """
+
+    comm = "aws s3 cp {source} {target}".format(source=local_path, target=s3_prefix)
+    if silent: comm += ' --only-show-errors'
+    if recursive: comm += ' --recursive'
+
+    for i in range(3):
+        res = subprocess.run(comm, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if res.returncode == 0:
+            return
+        log.info("Could not upload, attempt {}.\t{}".format(i + 1, res.stderr))
+
+    raise Exception("Could not upload {}".format(s3_prefix))
