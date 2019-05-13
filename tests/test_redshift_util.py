@@ -24,10 +24,8 @@ class TestRedshiftUtil(unittest.TestCase):
     @mock.patch("psycopg2.connect")
     @mock.patch("cranial.db.utils.redshift._get_redshift_connection")
     def test_dryrun_redshift_query(self, mock_connect, mock_open):
-         # This is the result of psycopg2.connect()
         mock_con = mock_connect.return_value  
         mock_open.return_value = mock_con
-        # This is the result of connection.cursor()
         mock_cur = mock_con.cursor.return_value.__enter__.return_value
         execute_redshift_query(TestRedshiftUtil.TEST_EXEC_SQL,
                                TestRedshiftUtil.TEST_KEY_PATH,
