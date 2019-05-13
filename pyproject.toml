@@ -10,9 +10,10 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.5"
 boto3 = "^1.9"
-cranial-common = "^0.2.0"
 cachetools = "^2.1"
+cranial-common = "^0.2.0"
+python = ">=3.5"
+pyscopg2-binary = ">=2.8.2"
 
 [tool.poetry.dev-dependencies]
